@@ -16,7 +16,7 @@ fn main()  -> std::io::Result<()>{
     let args_len = args.len();
 
 
- 
+
 
 
     if args_len  != 3 {
@@ -44,25 +44,19 @@ fn main()  -> std::io::Result<()>{
         - /etc/ssh/sshd_config
      */
 
-    let etc_passwd = File::open("/etc/passwd")?;
-    let etc_passwd_metadata = etc_passwd.metadata()?;
-    println!("file scanned : /etc/passwd ");
-    println!("Metadata : {:#?}", etc_passwd_metadata);
+
 
 
     println!("===========================");
 
-    let etc_shadow = File::open("/etc/shadow")?;
-    let etc_shadow_metadata = etc_shadow.metadata()?;
-    println!("file scanned : /etc/shadow ");
-    println!(" Metadata : {:#?}", etc_shadow_metadata);
-    println!("===========================");
+
+    
+    collectors::linux::collect_passwd()?;
+    
+    
 
 
-    let etc_sshd_config = File::open("/etc/ssh/sshd_config")?;
-    let etc_sshd_config_metadata = etc_sshd_config.metadata()?;
-    println!("file scanned :  /etc/ssh/sshd_config");
-    println!("Metadata :  {:#?}", etc_sshd_config_metadata);
+
 
 
     Ok(())
