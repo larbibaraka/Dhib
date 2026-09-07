@@ -5,7 +5,8 @@ use std::env::consts::ARCH;
 
 use std::{env};
 
-struct System {
+ #[derive(Debug)]
+pub struct System {
     os: String,
     arch: String,
 
@@ -16,7 +17,8 @@ struct etc_password {
 }
 
 use std::fs::{File};
-pub fn collect_system(){
+
+pub fn collect_system() -> System{
     // getting to know the target
     let _os = OS.to_lowercase();
     let _arch = ARCH.to_lowercase();
@@ -24,7 +26,7 @@ pub fn collect_system(){
     System {
         os : _os,
         arch : _arch,
-    };
+    }
 
 }
 
