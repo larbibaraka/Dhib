@@ -8,7 +8,9 @@ use std::fs::{File};
 use std::os::unix::fs::PermissionsExt;
 
 use std::os::linux::fs::MetadataExt;
- #[derive(Debug)]
+use std::path::Path;
+
+#[derive(Debug)]
 pub struct System {
     os: String,
     arch: String,
@@ -26,8 +28,9 @@ pub struct Timestamps {
     accessed : SystemTime
 
 }
+
 #[derive(Debug)]
-pub struct PasswordEvidence {
+pub struct FileStruct {
     file_permissions: Permissions,
     is_symlink : bool,
     length : u64,
@@ -39,22 +42,17 @@ pub fn collect_system() -> System{
     // getting to know the target
     let _os = OS.to_lowercase();
     let _arch = ARCH.to_lowercase();
-
     System {
         os : _os,
         arch : _arch,
     }
-
 }
 
-pub fn collect_passwd() -> Result<PasswordEvidence,std::io::Error> {
+fn collect_file_metadata(path : &str) -> Result<FileStruct, std::io::Error> {
+    let file = File::open(path)?;
+    let metadata = file.metadata()?;
 
-    let etc_passwd = File::open("/etc/passwd")?;
-    let metadata = etc_passwd.metadata()?;
-    println!("file scanned : /etc/passwd ");
-
-
-    let evidence = PasswordEvidence {
+    let evidence = FileStruct {
         file_permissions: Permissions {
             // 0o100644 (-rw-r--r--)
             mode : metadata.permissions().mode() ,
@@ -71,20 +69,23 @@ pub fn collect_passwd() -> Result<PasswordEvidence,std::io::Error> {
     Ok(evidence)
 }
 
-// pub fn collect_shadow() -> Result<(),std::io::Error> {
-//     let etc_shadow = File::open("/etc/shadow")?;
-//     let etc_shadow_metadata = etc_shadow.metadata()?;
-//     println!("file scanned : /etc/shadow ");
-//     println!(" Metadata : {:#?}", etc_shadow_metadata);
-//     Ok(())
-// 
-// }
-// 
-// pub fn collect_sshd_config()-> Result<(),std::io::Error> {
-// 
-//     let etc_sshd_config = File::open("/etc/ssh/sshd_config")?;
-//     let etc_sshd_config_metadata = etc_sshd_config.metadata()?;
-//     println!("file scanned :  /etc/ssh/sshd_config");
-//     println!("Metadata :  {:#?}", etc_sshd_config_metadata);
-//     Ok(())
-// }
+pub fn collect_passwd() -> Result<FileStruct,std::io::Error> {
+    let file = collect_file_metadata("/etc/passwd")?;
+    println!("file scanned : /etc/passwd ");
+    Ok(file)
+}
+
+pub fn collect_shadow() -> Result<FileStruct,std::io::Error> {
+    let file = collect_file_metadata("/etc/passwd")?;
+    println!("file scanned : /etc/shadow ");
+    Ok(file)
+}
+
+pub fn collect_sshd_config()-> Result<FileStruct,std::io::Error> {
+    let file = collect_file_metadata("/etc/ssh/sshd_config")?;
+    println!("file scanned :  /etc/ssh/sshd_config");
+    Ok(file)
+}
+
+
+

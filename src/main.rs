@@ -20,8 +20,6 @@ fn main()  -> std::io::Result<()>{
 
     println!("{:?}", system);
 
-
-
     if args_len  != 3 {
         return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "in order this program to work you need three arguments eg usage : dhib scan linux"));
 
@@ -37,43 +35,21 @@ fn main()  -> std::io::Result<()>{
     if target.is_empty() || !target.eq("linux") {
         return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "target not supported"));
     }
-
-
-
     /*
     we need to inspect this :
         - /etc/passwd
         - /etc/shadow
         - /etc/ssh/sshd_config
      */
-
-
-
-
     println!("===========================");
-
-
-
-    let evidance = collectors::linux::collect_passwd()?;
-    println!("{:?}", evidance);
-    // println!("===========================");
-    // collectors::linux::collect_shadow()?;
-    // println!("===========================");
-    // collectors::linux::collect_sshd_config()?;
-    
-
-
-
-
-
-
-
+    let passwd = collectors::linux::collect_passwd()?;
+    println!("{:#?}", passwd);
+    println!("===========================");
+    let shadow = collectors::linux::collect_shadow()?;
+    println!("{:#?}", shadow);
+    println!("===========================");
+   let ssh_config=   collectors::linux::collect_sshd_config()?;
+    println!("{:#?}", ssh_config);
     Ok(())
-
-
-
-
-
-
 
 }
