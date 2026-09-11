@@ -4,7 +4,7 @@ use std::{env};
 
 
 use std::fs::{File};
-use crate::collectors::linux::collect_system;
+use crate::collectors::linux;
 // use std::io::prelude::*;
 
 
@@ -18,7 +18,7 @@ fn main()  -> std::io::Result<()>{
 
     let system = collectors::linux::collect_system();
 
-    // println!("{:?}", system);
+    println!("{:?}", system);
 
 
 
@@ -54,11 +54,12 @@ fn main()  -> std::io::Result<()>{
 
 
 
-    collectors::linux::collect_passwd()?;
-    println!("===========================");
-    collectors::linux::collect_shadow()?;
-    println!("===========================");
-    collectors::linux::collect_sshd_config()?;
+    let evidance = collectors::linux::collect_passwd()?;
+    println!("{:?}", evidance);
+    // println!("===========================");
+    // collectors::linux::collect_shadow()?;
+    // println!("===========================");
+    // collectors::linux::collect_sshd_config()?;
     
 
 

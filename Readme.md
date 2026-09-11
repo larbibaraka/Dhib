@@ -24,6 +24,8 @@ The long-term goal is to build a platform that connects low-level system
 inspection with security controls, risk assessment, observability, and
 remediation.
 
+
+
 ```text
 Target System
       │
@@ -50,3 +52,19 @@ Target System
         ├──────► Terminal
         │
         └──────► JSON
+
+```
+
+
+## run using dev (docker on linux machine)
+```bash
+docker build -t dhib:dev -f Dockerfile.dev .
+```
+```bash
+
+docker run --rm -it \
+  -v "$(pwd):/app" \
+  dhib:dev
+
+```
+ 
