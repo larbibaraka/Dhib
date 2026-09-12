@@ -53,9 +53,14 @@ fn main()  -> std::io::Result<()>{
 
     let pass = collectors::linux::collect_passwd_contents()?;
     println!("{:#?}", pass);
-    
+
     let shadow = collectors::linux::collect_shadow_contents()?;
     println!("{:#?}", shadow);
+
+    let ssh = collectors::linux::collect_sshd_config_contents();
+    println!("{:#?}", ssh);
+
+
 
     Ok(())
 

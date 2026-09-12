@@ -62,6 +62,18 @@ pub struct ShadowEntry {
 }
 
 
+#[derive(Debug)]
+pub struct SshConfigEntry  {
+    include : String,
+    kbd_interactive_authentication : String,
+    use_pam : String,
+    x11_forwarding : String,
+    print_motd : String,
+    accept_env : Vec<String>,
+    sub_system : Vec<String>,
+}
+
+
 
 pub fn collect_system() -> System{
     // getting to know the target
@@ -170,17 +182,89 @@ fn collect_shadow_file_contents(path : &str) -> Result<Vec<ShadowEntry>, std::io
     Ok(file_struct_vec)
 }
 
-pub fn collect_passwd_contents() -> Result<Vec<PasswdEntry>, std::io::Error> {
-    let pass = collect_passwd_file_contents("/etc/passwd")?;
-    Ok(pass)
+fn collect_sshd_config_file_contents(path : &str) -> Result<SshConfigEntry, std::io::Error> {
+    let file = file_reader(path)?;
+
+    let mut include = String::new();
+    let mut kbd_interactive_authentication = String::new();
+    let mut use_pam = String::new();
+    let mut x11_forwarding = String::new();
+    let mut print_motd = String::new();
+    let mut accept_env: Vec<String> = Vec::new();
+    let mut sub_system: Vec<String> = Vec::new();
+    for line in file.lines() {
+        if(!line.is_empty() && !line.starts_with('#')) {
+            let mut parts = line.split_whitespace();
+            let directive = parts.next();
+            let arguments: Vec<&str> = parts.collect();
+
+
+            match directive {
+                Some("Include") => {
+                    include = arguments[0].to_string();
+                }
+                Some("KbdInteractiveAuthentication") => {
+                    kbd_interactive_authentication = arguments[0].to_string();
+                }
+                Some("UsePam") => {
+                    use_pam = arguments[0].to_string();
+                }
+                Some("X11Forwarding") => {
+                    x11_forwarding = arguments[0].to_string();
+                }
+                Some("PrintMotd") => {
+                    print_motd = arguments[0].to_string();
+                }
+                Some("AcceptEnv") => {
+                    accept_env.extend(arguments.into_iter().map(String::from));
+                }
+                Some("SubSystem") => {
+                    sub_system.extend(arguments.into_iter().map(String::from));
+                }
+
+                _ => {}
+            }
+
+
+
+
+        }
+
+
+    }
+
+    let my_struct = SshConfigEntry {
+        include,
+        kbd_interactive_authentication,
+        use_pam,
+        x11_forwarding,
+        print_motd,
+        accept_env,
+        sub_system,
+    };
+
+    Ok(my_struct)
 
 }
 
 
+pub fn collect_passwd_contents() -> Result<Vec<PasswdEntry>, std::io::Error> {
+    let pass = collect_passwd_file_contents("/etc/passwd")?;
+    Ok(pass)
+}
+
 pub fn collect_shadow_contents() -> Result<Vec<ShadowEntry>, std::io::Error> {
     let shadow = collect_shadow_file_contents("/etc/shadow")?;
     Ok(shadow)
+}
 
+pub fn collect_sshd_config_contents() -> Result <(), std::io::Error> {
+    let ssh_config = collect_sshd_config_file_contents("/etc/ssh/sshd_config")?;
+    println!("{:#?}", ssh_config);
+
+
+
+    Ok(())
 }
 
 
