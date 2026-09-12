@@ -108,6 +108,9 @@ fn collect_passwd_file_contents(path : &str) -> Result<Vec<PasswdEntry>, std::io
      let mut file_struct_vec : Vec<PasswdEntry> = Vec::new();
      for line in file.lines() {
          let fields = line.split(':').collect::<Vec<&str>>();
+         if(fields.len() != 7) {
+             return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, format!("/etc/passwd contains malformed entry at line {}", line)));
+         }
          let username =  fields.get(0).map(|value| value.to_string()).unwrap_or_default();
          let password =  fields.get(1).map(|value| value.to_string()).unwrap_or_default();
          let user_id  =   fields.get(2).map(|value| value.to_string()).unwrap_or_default();
@@ -136,15 +139,19 @@ fn collect_shadow_file_contents(path : &str) -> Result<Vec<ShadowEntry>, std::io
     let mut file_struct_vec : Vec<ShadowEntry> = Vec::new();
 
     for line in file.lines() {
+
         let fields = line.split(':').collect::<Vec<&str>>();
-        let username =  fields.get(0).map(|value| value.to_string()).unwrap_or_default();;
-        let encrypted_password =  fields.get(1).map(|value| value.to_string()).unwrap_or_default();;
-        let last_password_changed  =  fields.get(2).map(|value| value.to_string()).unwrap_or_default();;
-        let minimum_password_changed =   fields.get(3).map(|value| value.to_string()).unwrap_or_default();;
-        let maximum_password_changed =  fields.get(4).map(|value| value.to_string()).unwrap_or_default();;
-        let password_warning_period =  fields.get(5).map(|value| value.to_string()).unwrap_or_default();;
-        let password_inactivity_period =  fields.get(6).map(|value| value.to_string()).unwrap_or_default();;
-        let account_expiration_date = fields.get(7).map(|value| value.to_string()).unwrap_or_default();;
+        if(fields.len() != 9) {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, format!("/etc/shadow contains malformed entry at line {}", line)));
+        }
+        let username =  fields.get(0).map(|value| value.to_string()).unwrap_or_default();
+        let encrypted_password =  fields.get(1).map(|value| value.to_string()).unwrap_or_default();
+        let last_password_changed  =  fields.get(2).map(|value| value.to_string()).unwrap_or_default();
+        let minimum_password_changed =   fields.get(3).map(|value| value.to_string()).unwrap_or_default();
+        let maximum_password_changed =  fields.get(4).map(|value| value.to_string()).unwrap_or_default();
+        let password_warning_period =  fields.get(5).map(|value| value.to_string()).unwrap_or_default();
+        let password_inactivity_period =  fields.get(6).map(|value| value.to_string()).unwrap_or_default();
+        let account_expiration_date = fields.get(7).map(|value| value.to_string()).unwrap_or_default();
         let reserved =fields.get(8).map(|value| value.to_string()).unwrap_or_default();
 
         let file_struct = ShadowEntry {
