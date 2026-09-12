@@ -4,7 +4,7 @@ use std::env::consts::ARCH;
 
 use std::time::SystemTime;
 use std::fs::{File};
-
+use std::io::{BufRead, BufReader, Read};
 use std::os::unix::fs::PermissionsExt;
 
 use std::os::linux::fs::MetadataExt;
@@ -30,12 +30,37 @@ pub struct Timestamps {
 }
 
 #[derive(Debug)]
-pub struct FileStruct {
+pub struct MetadataStruct {
     file_permissions: Permissions,
     is_symlink : bool,
     length : u64,
     timestamps :Timestamps
 }
+
+#[derive(Debug)]
+pub struct PasswdEntry {
+    username : String,
+    password : String,
+    comment : String,
+    user_id : String,
+    group_id : String,
+    home_dir : String,
+    login_shell : String,
+}
+
+#[derive(Debug)]
+pub struct ShadowEntry {
+    username: String,
+    encrypted_password: String,
+    last_password_changed: String,
+    minimum_password_changed: String,
+    maximum_password_changed: String,
+    password_warning_period: String,
+    password_inactivity_period: String,
+    account_expiration_date: String,
+    reserved: String
+}
+
 
 
 pub fn collect_system() -> System{
@@ -48,11 +73,11 @@ pub fn collect_system() -> System{
     }
 }
 
-fn collect_file_metadata(path : &str) -> Result<FileStruct, std::io::Error> {
+fn collect_file_metadata(path : &str) -> Result<MetadataStruct, std::io::Error> {
     let file = File::open(path)?;
     let metadata = file.metadata()?;
 
-    let evidence = FileStruct {
+    let evidence = MetadataStruct {
         file_permissions: Permissions {
             // 0o100644 (-rw-r--r--)
             mode : metadata.permissions().mode() ,
@@ -69,23 +94,109 @@ fn collect_file_metadata(path : &str) -> Result<FileStruct, std::io::Error> {
     Ok(evidence)
 }
 
-pub fn collect_passwd() -> Result<FileStruct,std::io::Error> {
+
+fn file_reader(path : &str) -> Result<String, std::io::Error> {
+    let file = File::open(path)?;
+    let mut buf_reader = BufReader::new(file);
+    let mut contents = String::new();
+    buf_reader.read_to_string(&mut contents)?;
+    Ok(contents)
+}
+
+fn collect_passwd_file_contents(path : &str) -> Result<Vec<PasswdEntry>, std::io::Error> {
+     let file = file_reader(path)?;
+     let mut file_struct_vec : Vec<PasswdEntry> = Vec::new();
+     for line in file.lines() {
+         let fields = line.split(':').collect::<Vec<&str>>();
+         let username =  fields.get(0).map(|value| value.to_string()).unwrap_or_default();
+         let password =  fields.get(1).map(|value| value.to_string()).unwrap_or_default();
+         let user_id  =   fields.get(2).map(|value| value.to_string()).unwrap_or_default();
+         let group_id =   fields.get(3).map(|value| value.to_string()).unwrap_or_default();
+         let comment =  fields.get(4).map(|value| value.to_string()).unwrap_or_default();
+         let home_dir =  fields.get(5).map(|value| value.to_string()).unwrap_or_default();
+         let login_shell =  fields.get(6).map(|value| value.to_string()).unwrap_or_default();
+
+         let file_struct = PasswdEntry {
+             username ,
+             password ,
+             user_id ,
+             group_id ,
+             comment ,
+             home_dir ,
+             login_shell
+         };
+         file_struct_vec.push(file_struct);
+     }
+     Ok(file_struct_vec)
+}
+
+
+fn collect_shadow_file_contents(path : &str) -> Result<Vec<ShadowEntry>, std::io::Error> {
+    let file = file_reader(path)?;
+    let mut file_struct_vec : Vec<ShadowEntry> = Vec::new();
+
+    for line in file.lines() {
+        let fields = line.split(':').collect::<Vec<&str>>();
+        let username =  fields.get(0).map(|value| value.to_string()).unwrap_or_default();;
+        let encrypted_password =  fields.get(1).map(|value| value.to_string()).unwrap_or_default();;
+        let last_password_changed  =  fields.get(2).map(|value| value.to_string()).unwrap_or_default();;
+        let minimum_password_changed =   fields.get(3).map(|value| value.to_string()).unwrap_or_default();;
+        let maximum_password_changed =  fields.get(4).map(|value| value.to_string()).unwrap_or_default();;
+        let password_warning_period =  fields.get(5).map(|value| value.to_string()).unwrap_or_default();;
+        let password_inactivity_period =  fields.get(6).map(|value| value.to_string()).unwrap_or_default();;
+        let account_expiration_date = fields.get(7).map(|value| value.to_string()).unwrap_or_default();;
+        let reserved =fields.get(8).map(|value| value.to_string()).unwrap_or_default();
+
+        let file_struct = ShadowEntry {
+            username ,
+            encrypted_password ,
+            last_password_changed ,
+            minimum_password_changed ,
+            maximum_password_changed ,
+            password_warning_period ,
+            password_inactivity_period,
+            account_expiration_date,
+            reserved
+        };
+        file_struct_vec.push(file_struct);
+    }
+    Ok(file_struct_vec)
+}
+
+pub fn collect_passwd_contents() -> Result<Vec<PasswdEntry>, std::io::Error> {
+    let pass = collect_passwd_file_contents("/etc/passwd")?;
+    Ok(pass)
+
+}
+
+
+pub fn collect_shadow_contents() -> Result<Vec<ShadowEntry>, std::io::Error> {
+    let shadow = collect_shadow_file_contents("/etc/shadow")?;
+    Ok(shadow)
+
+}
+
+
+
+pub fn collect_passwd() -> Result<MetadataStruct,std::io::Error> {
     let file = collect_file_metadata("/etc/passwd")?;
     println!("file scanned : /etc/passwd ");
     Ok(file)
 }
 
-pub fn collect_shadow() -> Result<FileStruct,std::io::Error> {
-    let file = collect_file_metadata("/etc/passwd")?;
+pub fn collect_shadow() -> Result<MetadataStruct,std::io::Error> {
+    let file = collect_file_metadata("/etc/shadow")?;
     println!("file scanned : /etc/shadow ");
     Ok(file)
 }
 
-pub fn collect_sshd_config()-> Result<FileStruct,std::io::Error> {
+pub fn collect_sshd_config()-> Result<MetadataStruct,std::io::Error> {
     let file = collect_file_metadata("/etc/ssh/sshd_config")?;
     println!("file scanned :  /etc/ssh/sshd_config");
     Ok(file)
 }
+
+
 
 
 

@@ -41,15 +41,22 @@ fn main()  -> std::io::Result<()>{
         - /etc/shadow
         - /etc/ssh/sshd_config
      */
-    println!("===========================");
-    let passwd = collectors::linux::collect_passwd()?;
-    println!("{:#?}", passwd);
-    println!("===========================");
-    let shadow = collectors::linux::collect_shadow()?;
+   //  println!("===========================");
+   //  let passwd = collectors::linux::collect_passwd()?;
+   //  println!("{:#?}", passwd);
+   //  println!("===========================");
+   //  let shadow = collectors::linux::collect_shadow()?;
+   //  println!("{:#?}", shadow);
+   //  println!("===========================");
+   // let ssh_config=   collectors::linux::collect_sshd_config()?;
+   //  println!("{:#?}", ssh_config);
+
+    let pass = collectors::linux::collect_passwd_contents()?;
+    println!("{:#?}", pass);
+    
+    let shadow = collectors::linux::collect_shadow_contents()?;
     println!("{:#?}", shadow);
-    println!("===========================");
-   let ssh_config=   collectors::linux::collect_sshd_config()?;
-    println!("{:#?}", ssh_config);
+
     Ok(())
 
 }
